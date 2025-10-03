@@ -1,0 +1,150 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Project Completion Tracking Rules
+
+## Scope of Work Tracking
+- When the user provides their scope of work, analyze it against current project state
+- Calculate completion percentage based on implemented features vs. total requirements
+- Provide percentage updates in every response when working on this project
+- Break down completion by major feature areas when applicable
+
+## Analysis Framework
+- Review current codebase against scope requirements
+- Identify completed, in-progress, and pending features
+- Calculate: (Completed Features / Total Features) * 100
+- Consider complexity weighting for more accurate percentages
+
+## Response Format
+- Always include completion percentage in project-related responses
+- Format: "Project Completion: X%"
+- Provide breakdown of major components when relevant
+- Update percentages as work progresses
+
+## Scope of Work Integration
+- User will paste scope of work in this file
+- Use that as the baseline for all completion calculations
+- Reference specific scope items when discussing progress
+
+
+SCOPE OF WORK:
+Marketing & Technologies
+
+D ATE D : SEPT19, 2025 www.hifimarketing.co
+hello@hifimarketing.co
+(92) 345 65 73 454
+18375 Ventura Blvd #442 Tarzana Ca.
+Unit # 04 Mezzanine Floor, Soan Garden, Islamabad
+
+PSEB No. Z-25-13166/25
+
+CON TRACT NO. G H L/A-91822
+TE N D ER NO.
+G H L/LR/09/2025
+
+2. Parties Involved
+Client:
+Hifi Marketing and Technologies
+NTN: PSEB No. Z-25-13166/25
+Address: Unit # 04 Mezzanine Floor, Soan Garden, Islamabad
+Contact Person: Shagufta Munir (Project Associate)
+Contact Email: shagufta@hifimarketing.co CC TO: hello@hifimarketing.co
+Contact Phone: +92 345 65 73 454 [UAN +92 316 808080 1]
+Developer:
+Mr. Abdur Rehman Bilal
+33102-7872867-5
+abdulrehmanbilal25@gmail.com
+Project Scope of Work:
+Mr. Abdul Rehman shall be responsible for the end-to-end development, implementation, and
+delivery of an automated integration between Go High Level CRM (GHL) and Zoom, enabling
+real-time synchronization of communication logs and client data.
+Detailed Scope & Client Requirements
+Objectives:
+- Integrate Zoom with GHL using API and/or automation tools (e.g., Integrately).
+- Automatically log:
+- Call records
+- SMS/text messages
+- Meeting recordings
+- Auto-create new contacts in GHL if they don’t already exist.
+Scope of Work:
+1. API Integration:
+- Configure Zoom API and GHL API to establish secure, real-time data exchange.
+2. Automation Setup:
+- Utilize Integrately or custom script-based automation where applicable.
+3. Testing & QA:
+- Ensure accurate syncing and error-handling.
+4. Deployment & Handover:
+- Final testing and documentation for client-side maintenance.
+
+Developer Responsibilities (Mr. Abdul Rehman)
+The Developer agrees to:
+- Design and implement a secure and real-time integration of GHL with Zoom
+- Ensure that:
+- Calls, SMS, and meeting recordings are automatically logged into GHL
+- New contacts are created in GHL when needed, using defined minimum fields
+- Create and follow proper logging, error handling, and fallback protocols
+- Implement data retention and display rules as defined
+- Complete the full project within 7–9 business days, ending 26th September 2025
+- Conduct testing and validation using test contacts and real-time triggers
+- Maintain full confidentiality of client data and credentials
+Timeline:
+5-7 Business Days
+Change Management
+Any changes to the scope of work, features, or deliverables beyond minor adjustments will be
+managed through a formal change request process. Both parties must agree in writing to any
+significant changes, which may impact the project timeline and cost. Minor changes are
+subject to change by the consumer side depending on the ongoing scope of work, provided
+they do not significantly alter the overall architecture or require substantial re-development.
+Intellectual Property
+Upon full and final payment, all intellectual property rights, including but not limited to
+source code, designs, documentation, and any other materials developed specifically for this
+project, shall be transferred to Hifi Marketing and Technologies. The Developer retains the
+right to use general knowledge, experience, and tools acquired during the project for other
+clients, provided no confidential information of Hifi Marketing and Technologies is disclosed or
+used.
+Confidentiality
+Both parties agree to keep all proprietary and confidential information exchanged during the
+course of this project strictly confidential and not to disclose it to any third party without prior
+written consent. This obligation shall survive the termination of this SOW.
+Acceptance Criteria
+The project will be considered successfully delivered upon the Client's formal acceptance,
+which will be based on the following criteria:
+All specified modules and features are implemented as per the SOW.
+The system passes all defined test cases and UAT.
+The solution meets performance and security requirements.
+All required documentation is provided.
+
+Payment Terms:
+- Total Project Cost: PKR 25,000
+- 10% payable as an upfront
+- 10% payable upon commencement and progress in 2-3 days
+- 80% payable upon successful delivery and sign-off
+Developer Non-Performance Penalty
+In the event that the Developer does not fulfill the commitments outlined in this SOW or
+backs off from the project under any terms without justifiable cause (as mutually agreed upon
+by both parties), the Developer shall be liable to pay 80% of the total project cost to Hifi
+Marketing and Technologies. This payment serves as compensation for the destruction of
+goodwill and potential business loss incurred by Hifi Marketing and Technologies for its clients
+due to the Developer's non-performance.
+Governing Law
+This SOW shall be governed by and construed in accordance with the laws of the government
+of Pakistan where the contract is legally binding.
+
+Company
+Stamp
+
+HIFI
+MARKETING
+AND TECHNOLOGIES
+REG NO. Z-25-13166/25
+
+Authorised
+Signature
+Shagufta Munir - Project Associate
+Hifi Marketing and Technologies Pvt Ltd.
+
+Authorised
+Signature
+Abdul Rehman Bilal - Project Developer
