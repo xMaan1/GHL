@@ -1,0 +1,18 @@
+ssh -i ghl.pem ubuntu@13.61.42.7
+
+
+Restart Your App:
+ssh -i ghl.pem ubuntu@13.61.42.7 "sudo systemctl restart zoom-ghl"
+Stop Your App:
+ssh -i ghl.pem ubuntu@13.61.42.7 "sudo systemctl stop zoom-ghl"
+Start Your App:
+ssh -i ghl.pem ubuntu@13.61.42.7 "sudo systemctl start zoom-ghl"
+Check Status:
+ssh -i ghl.pem ubuntu@13.61.42.7 "sudo systemctl status zoom-ghl"
+View Live Logs:
+ssh -i ghl.pem ubuntu@13.61.42.7 "sudo journalctl -u zoom-ghl -f"
+View Last 500 Logs:
+ssh -i ghl.pem ubuntu@13.61.42.7 "sudo journalctl -u zoom-ghl --lines=500"
+
+pull:
+ssh -i ghl.pem ubuntu@13.61.42.7 "cd GHL && git pull && sudo systemctl restart zoom-ghl && sudo journalctl -u zoom-ghl -f"

@@ -1,0 +1,5 @@
+# Application Configuration
+# EC2 Domain for proxy downloads
+
+# Your actual EC2 domain (update this with your domain if you have one)
+ec2-domain=http://13.61.42.7:8000

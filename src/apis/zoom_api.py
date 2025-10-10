@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Zoom API Script to get all users using Server-to-Server OAuth
-Based on the PowerShell script provided
+Zoom API Client for Server-to-Server OAuth
+Handles authentication and API calls to Zoom
 """
 
 import requests
@@ -37,18 +37,15 @@ class ZoomAPI:
         """
         token_url = f"https://zoom.us/oauth/token"
         
-        # Prepare the request data
         data = {
             'grant_type': 'account_credentials',
             'account_id': self.account_id
         }
         
-        # Prepare headers
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
         
-        # Make the request with basic auth
         response = requests.post(
             token_url,
             data=data,
@@ -87,17 +84,15 @@ class ZoomAPI:
         page = 1
         
         while True:
-            # Prepare URL with pagination
             url = f"{self.base_url}/users"
             params = {
                 'page_size': page_size,
-                'status': 'active'  # Get active users
+                'status': 'active'  
             }
             
             if next_page_token:
                 params['next_page_token'] = next_page_token
             
-            # Prepare headers with Bearer token
             headers = {
                 'Authorization': f'Bearer {self.access_token}',
                 'Content-Type': 'application/json'
@@ -105,7 +100,6 @@ class ZoomAPI:
             
             print(f"📄 Fetching page {page}...")
             
-            # Make the API request
             response = requests.get(url, headers=headers, params=params)
             
             if response.status_code == 200:
@@ -115,7 +109,6 @@ class ZoomAPI:
                 
                 print(f"   Found {len(users)} users on page {page}")
                 
-                # Check if there are more pages
                 next_page_token = data.get('next_page_token')
                 if not next_page_token:
                     break
@@ -155,87 +148,128 @@ class ZoomAPI:
         else:
             print(f"❌ Failed to get user details for {user_id}: {response.status_code}")
             return {}
-
-def load_credentials(filename: str = "client_credentials.txt") -> Dict[str, str]:
-    """
-    Load Zoom credentials from file
     
-    Args:
-        filename: Path to credentials file
+    def get_phone_recordings(self, page_size: int = 30, from_date: str = None, to_date: str = None) -> List[Dict]:
+        """
+        Get call recordings from Zoom Phone API
         
-    Returns:
-        Dictionary with credentials
-    """
-    credentials = {}
+        Args:
+            page_size: Number of records per page (max 300)
+            from_date: Start date in yyyy-mm-dd format
+            to_date: End date in yyyy-mm-dd format
+            
+        Returns:
+            List of recording dictionaries
+        """
+        if not self.access_token:
+            self.get_access_token()
+        
+        url = f"{self.base_url}/phone/recordings"
+        params = {
+            'page_size': min(page_size, 300)
+        }
+        
+        if from_date:
+            params['from'] = from_date
+        if to_date:
+            params['to'] = to_date
+        
+        headers = {
+            'Authorization': f'Bearer {self.access_token}',
+            'Content-Type': 'application/json'
+        }
+        
+        print(f"🔍 Fetching phone recordings with params: {params}")
+        
+        response = requests.get(url, headers=headers, params=params)
+        
+        if response.status_code == 200:
+            data = response.json()
+            recordings = data.get('recordings', [])
+            print(f"✅ Found {len(recordings)} phone recordings")
+            return recordings
+        else:
+            print(f"❌ Failed to get phone recordings: {response.status_code} - {response.text}")
+            return []
     
-    try:
-        with open(filename, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if '=' in line:
-                    key, value = line.split('=', 1)
-                    credentials[key.strip()] = value.strip()
+    def download_phone_recording(self, file_id: str, download_url: str = None) -> bytes:
+        """
+        Download a phone recording using the file ID or direct download URL
         
-        required_keys = ['account-id', 'client-id', 'client-secret']
-        for key in required_keys:
-            if key not in credentials:
-                raise ValueError(f"Missing required credential: {key}")
+        Args:
+            file_id: File ID from Zoom Phone API
+            download_url: Direct download URL (optional)
+            
+        Returns:
+            Recording file bytes
+        """
+        if not self.access_token:
+            self.get_access_token()
         
-        return credentials
+        if download_url:
+            url = download_url
+        else:
+            url = f"{self.base_url}/phone/recording/download/{file_id}"
         
-    except FileNotFoundError:
-        print(f"❌ Credentials file '{filename}' not found")
-        sys.exit(1)
-    except Exception as e:
-        print(f"❌ Error loading credentials: {e}")
-        sys.exit(1)
-
-def main():
-    """Main function to demonstrate the Zoom API usage"""
-    print("🚀 Zoom Users API Script")
-    print("=" * 50)
+        headers = {
+            'Authorization': f'Bearer {self.access_token}',
+            'Accept': 'application/octet-stream'
+        }
+        
+        print(f"🔍 Downloading phone recording from: {url}")
+        
+        response = requests.get(url, headers=headers, stream=True)
+        
+        if response.status_code == 200:
+            recording_data = b''
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    recording_data += chunk
+            print(f"✅ Successfully downloaded recording {file_id}")
+            return recording_data
+        else:
+            print(f"❌ Failed to download recording: {response.status_code} - {response.text}")
+            return b''
     
-    try:
-        # Load credentials
-        print("📋 Loading credentials...")
-        creds = load_credentials()
+    def get_phone_recording_download_url(self, file_id: str) -> str:
+        """
+        Get the correct download URL for a phone recording
         
-        # Initialize Zoom API client
-        zoom_api = ZoomAPI(
-            account_id=creds['account-id'],
-            client_id=creds['client-id'],
-            client_secret=creds['client-secret']
-        )
+        Args:
+            file_id: File ID from Zoom Phone API
+            
+        Returns:
+            Download URL string
+        """
+        return f"{self.base_url}/phone/recording/download/{file_id}"
+    
+    def get_phone_recording_by_call_id(self, call_id: str) -> Dict:
+        """
+        Get phone recording by call ID
         
-        # Get access token
-        print("🔐 Authenticating with Zoom API...")
-        zoom_api.get_access_token()
+        Args:
+            call_id: Phone call ID
+            
+        Returns:
+            Recording details dictionary
+        """
+        if not self.access_token:
+            self.get_access_token()
         
-        # Get all users
-        print("👥 Fetching all users...")
-        users = zoom_api.get_all_users()
+        url = f"{self.base_url}/phone/recordings/call_logs/{call_id}"
+        headers = {
+            'Authorization': f'Bearer {self.access_token}',
+            'Content-Type': 'application/json'
+        }
         
-        # Display results
-        print("\n📊 User Summary:")
-        print("-" * 30)
+        print(f"🔍 Fetching recording for call ID: {call_id}")
         
-        for i, user in enumerate(users, 1):
-            print(f"{i:3d}. {user.get('first_name', '')} {user.get('last_name', '')} ({user.get('email', '')})")
-            print(f"     ID: {user.get('id', 'N/A')}")
-            print(f"     Status: {user.get('status', 'N/A')}")
-            print(f"     Type: {user.get('type', 'N/A')}")
-            print()
+        response = requests.get(url, headers=headers)
         
-        # Save to JSON file
-        output_file = "zoom_users.json"
-        with open(output_file, 'w') as f:
-            json.dump(users, f, indent=2)
-        
-        print(f"💾 User data saved to '{output_file}'")
-        
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    main()
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Found recording for call {call_id}")
+            return data
+        else:
+            print(f"❌ Failed to get recording for call {call_id}: {response.status_code} - {response.text}")
+            return {}
