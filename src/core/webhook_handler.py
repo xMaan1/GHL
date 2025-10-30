@@ -195,10 +195,17 @@ class ZoomGHLBot:
             print(f"✅ Using existing contact: {contact_id}")
             return contact_id
         
+        participant_uuid = user_data.get('participant_uuid', '')
         contact_data = {
             'first_name': name,
             'last_name': user_data.get('last_name', ''),
-            'email': email if email else f"phone_{phone.replace('+', '').replace('-', '').replace(' ', '')}@placeholder.com" if phone else f"zoom_user_{user_id}@placeholder.com",
+            'email': email if email else (
+                f"phone_{phone.replace('+', '').replace('-', '').replace(' ', '')}@placeholder.com" if phone else (
+                    f"zoom_participant_{participant_uuid}@placeholder.com" if participant_uuid else (
+                        f"zoom_user_{user_id}@placeholder.com" if user_id else "zoom_unknown@placeholder.com"
+                    )
+                )
+            ),
             'phone': phone
         }
         
@@ -432,18 +439,18 @@ Zoom Meeting Recording Completed:
                 print(f"❌ Zoom API not initialized")
                 return []
                 
-            if not self.zoom_api.access_token:
-                print(f"🔍 Getting access token...")
-                self.zoom_api.get_access_token()
-            
-            url = f"{self.zoom_api.base_url}/past_meetings/{meeting_id}/participants"
+            import urllib.parse
+            token = self.zoom_api.get_access_token()
+            encoded = urllib.parse.quote(meeting_id, safe='')
+            double_encoded = urllib.parse.quote(encoded, safe='')
+            url = f"{self.zoom_api.base_url}/past_meetings/{double_encoded}/participants"
             headers = {
-                'Authorization': f'Bearer {self.zoom_api.access_token}',
+                'Authorization': f'Bearer {token}',
                 'Content-Type': 'application/json'
             }
             
             print(f"🔍 Making API request to: {url}")
-            print(f"🔍 Using token: {self.zoom_api.access_token[:20]}...")
+            print(f"🔍 Using token: {token[:20]}...")
             
             response = requests.get(url, headers=headers)
             
@@ -626,6 +633,7 @@ Zoom Meeting Recording Completed:
                 email = participant.get('email', '') or participant.get('email_address', '')
                 user_id = participant.get('user_id', '')
                 participant_user_id = participant.get('participant_user_id', '')
+                participant_uuid = participant.get('participant_uuid', '')
                 first_name = participant.get('first_name', '')
                 last_name = participant.get('last_name', '')
                 user_name = participant.get('user_name', '')
@@ -635,10 +643,12 @@ Zoom Meeting Recording Completed:
                 print(f"🔍 Participant name: {first_name} {last_name} | user_name: {user_name} | phone: {phone}")
                 
                 if not email:
-                    if user_id:
-                        email = f"zoom_user_{user_id}@placeholder.com"
+                    if participant_uuid:
+                        email = f"zoom_participant_{participant_uuid}@placeholder.com"
                     elif participant_user_id:
                         email = f"zoom_participant_{participant_user_id}@placeholder.com"
+                    elif user_id:
+                        email = f"zoom_user_{user_id}@placeholder.com"
                     elif first_name or last_name:
                         name_part = f"{first_name}_{last_name}".replace(' ', '_').lower()
                         email = f"zoom_participant_{name_part}@placeholder.com"
@@ -658,7 +668,8 @@ Zoom Meeting Recording Completed:
                     'user_name': user_name,
                     'phone': phone,
                     'user_id': user_id,
-                    'participant_user_id': participant_user_id
+                    'participant_user_id': participant_user_id,
+                    'participant_uuid': participant_uuid
                 }
                 
                 contact_id = self.handle_contact(user_data)
