@@ -22,8 +22,8 @@ class ZoomAPI:
         self.account_id = account_id
         self.client_id = client_id
         self.client_secret = client_secret
-        self.access_token = None
         self.base_url = "https://api.zoom.us/v2"
+        self.access_token = None
         
     def get_access_token(self) -> str:
         """
@@ -55,6 +55,7 @@ class ZoomAPI:
         
         if response.status_code == 200:
             token_data = response.json()
+            # Always return a fresh token; also update in-memory copy for convenience
             self.access_token = token_data['access_token']
             print(f"✅ Successfully authenticated with Zoom API")
             return self.access_token
@@ -62,6 +63,19 @@ class ZoomAPI:
             error_msg = f"Authentication failed: {response.status_code} - {response.text}"
             print(f"❌ {error_msg}")
             raise Exception(error_msg)
+
+    def _auth_headers(self, content_type: str = 'application/json') -> Dict[str, str]:
+        """
+        Build Authorization headers using a freshly fetched Server-to-Server OAuth token.
+        Always obtains a new token to avoid expiration issues during long-running jobs.
+        """
+        access_token = self.get_access_token()
+        headers = {
+            'Authorization': f'Bearer {access_token}'
+        }
+        if content_type:
+            headers['Content-Type'] = content_type
+        return headers
     
     def get_all_users(self, page_size: int = 300) -> List[Dict]:
         """
@@ -76,9 +90,6 @@ class ZoomAPI:
         Raises:
             Exception: If API call fails
         """
-        if not self.access_token:
-            self.get_access_token()
-        
         all_users = []
         next_page_token = None
         page = 1
@@ -93,10 +104,7 @@ class ZoomAPI:
             if next_page_token:
                 params['next_page_token'] = next_page_token
             
-            headers = {
-                'Authorization': f'Bearer {self.access_token}',
-                'Content-Type': 'application/json'
-            }
+            headers = self._auth_headers()
             
             print(f"📄 Fetching page {page}...")
             
@@ -132,14 +140,8 @@ class ZoomAPI:
         Returns:
             User details dictionary
         """
-        if not self.access_token:
-            self.get_access_token()
-        
         url = f"{self.base_url}/users/{user_id}"
-        headers = {
-            'Authorization': f'Bearer {self.access_token}',
-            'Content-Type': 'application/json'
-        }
+        headers = self._auth_headers()
         
         response = requests.get(url, headers=headers)
         
@@ -161,9 +163,6 @@ class ZoomAPI:
         Returns:
             List of recording dictionaries
         """
-        if not self.access_token:
-            self.get_access_token()
-        
         url = f"{self.base_url}/phone/recordings"
         params = {
             'page_size': min(page_size, 300)
@@ -174,10 +173,7 @@ class ZoomAPI:
         if to_date:
             params['to'] = to_date
         
-        headers = {
-            'Authorization': f'Bearer {self.access_token}',
-            'Content-Type': 'application/json'
-        }
+        headers = self._auth_headers()
         
         print(f"🔍 Fetching phone recordings with params: {params}")
         
@@ -203,18 +199,14 @@ class ZoomAPI:
         Returns:
             Recording file bytes
         """
-        if not self.access_token:
-            self.get_access_token()
-        
         if download_url:
             url = download_url
         else:
             url = f"{self.base_url}/phone/recording/download/{file_id}"
         
-        headers = {
-            'Authorization': f'Bearer {self.access_token}',
-            'Accept': 'application/octet-stream'
-        }
+        # For binary download, omit Content-Type and set Accept
+        headers = self._auth_headers(content_type=None)
+        headers['Accept'] = 'application/octet-stream'
         
         print(f"🔍 Downloading phone recording from: {url}")
         
@@ -253,14 +245,8 @@ class ZoomAPI:
         Returns:
             Recording details dictionary
         """
-        if not self.access_token:
-            self.get_access_token()
-        
         url = f"{self.base_url}/phone/recordings/call_logs/{call_id}"
-        headers = {
-            'Authorization': f'Bearer {self.access_token}',
-            'Content-Type': 'application/json'
-        }
+        headers = self._auth_headers()
         
         print(f"🔍 Fetching recording for call ID: {call_id}")
         
