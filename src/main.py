@@ -8,7 +8,6 @@ import requests
 import json
 import hmac
 import hashlib
-import base64
 from datetime import datetime
 from typing import Dict
 
@@ -44,9 +43,9 @@ async def zoom_webhook(request: Request):
                 zoom_creds = load_zoom_credentials()
                 verification_token = zoom_creds.get("verification-token", "")
 
-                encrypted_token = base64.b64encode(
-                    hmac.new(verification_token.encode(), plain_token.encode(), hashlib.sha256).digest()
-                ).decode("utf-8")
+                encrypted_token = hmac.new(
+                    verification_token.encode(), plain_token.encode(), hashlib.sha256
+                ).hexdigest()
 
                 response = {
                     "plainToken": plain_token,
