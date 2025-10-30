@@ -42,11 +42,10 @@ async def zoom_webhook(request: Request):
 
             if plain_token:
                 zoom_creds = load_zoom_credentials()
-                secret_token = zoom_creds.get("secret-token", "")  # ✅ FIX HERE
+                verification_token = zoom_creds.get("verification-token", "")
 
-                # Encrypt using HMAC-SHA256 with the Secret Token
                 encrypted_token = base64.b64encode(
-                    hmac.new(secret_token.encode(), plain_token.encode(), hashlib.sha256).digest()
+                    hmac.new(verification_token.encode(), plain_token.encode(), hashlib.sha256).digest()
                 ).decode("utf-8")
 
                 response = {
