@@ -27,54 +27,47 @@ bot = ZoomGHLBot()
 @app.post("/zoom-webhook")
 async def zoom_webhook(request: Request):
     try:
-        payload = await request.body()
+        payload_bytes = await request.body()
         signature = request.headers.get('X-Zm-Signature', '')
-        
         print(f"🔍 Webhook received - Signature: {signature}")
-        print(f"🔍 Payload: {payload.decode()}")
-        
-        try:
-            event_data = await request.json()
-            print(f"🔍 Event data: {event_data}")
-            
-            if event_data.get('event') == 'endpoint.url_validation':
-                plain_token = event_data.get('payload', {}).get('plainToken', '')
-                print(f"🔍 Verification challenge - Plain token: {plain_token}")
-                
-                if plain_token:
-                    zoom_creds = load_zoom_credentials()
-                    verification_token = zoom_creds.get('verification-token', '')
-                    
-                    hash_for_validate = hmac.new(
-                        verification_token.encode('utf-8'),
-                        plain_token.encode('utf-8'),
-                        hashlib.sha256
-                    ).digest()
-                    encrypted_token = base64.b64encode(hash_for_validate).decode('utf-8')
-                    
-                    response = {
-                        "plainToken": plain_token,
-                        "encryptedToken": encrypted_token
-                    }
-                    print(f"🔍 Sending verification response: {response}")
-                    return response
-        except Exception as e:
-            print(f"🔍 JSON parsing error: {e}")
-            pass
-        
-        print(f"🔍 Skipping signature verification for testing")
-        
+        print(f"🔍 Payload: {payload_bytes.decode()}")
+
         event_data = await request.json()
+        print(f"🔍 Event data: {event_data}")
+
+        # ✅ Handle Zoom URL Validation Challenge
+        if event_data.get("event") == "endpoint.url_validation":
+            plain_token = event_data.get("payload", {}).get("plainToken", "")
+            print(f"🔍 Verification challenge - Plain token: {plain_token}")
+
+            if plain_token:
+                zoom_creds = load_zoom_credentials()
+                secret_token = zoom_creds.get("secret-token", "")  # ✅ FIX HERE
+
+                # Encrypt using HMAC-SHA256 with the Secret Token
+                encrypted_token = base64.b64encode(
+                    hmac.new(secret_token.encode(), plain_token.encode(), hashlib.sha256).digest()
+                ).decode("utf-8")
+
+                response = {
+                    "plainToken": plain_token,
+                    "encryptedToken": encrypted_token,
+                }
+                print(f"🔍 Sending verification response: {response}")
+                return response
+
+        # Normal event flow (after validation)
+        print(f"🔍 Skipping signature verification for testing")
         success = bot.process_webhook(event_data)
-        
         if success:
             return {"status": "success", "message": "Event processed"}
         else:
             raise HTTPException(status_code=500, detail="Failed to process event")
-            
+
     except Exception as e:
         print(f"❌ Webhook error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/health")
 async def health_check():
