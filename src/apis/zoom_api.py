@@ -65,10 +65,6 @@ class ZoomAPI:
             raise Exception(error_msg)
 
     def _auth_headers(self, content_type: str = 'application/json') -> Dict[str, str]:
-        """
-        Build Authorization headers using a freshly fetched Server-to-Server OAuth token.
-        Always obtains a new token to avoid expiration issues during long-running jobs.
-        """
         access_token = self.get_access_token()
         headers = {
             'Authorization': f'Bearer {access_token}'
@@ -204,7 +200,6 @@ class ZoomAPI:
         else:
             url = f"{self.base_url}/phone/recording/download/{file_id}"
         
-        # For binary download, omit Content-Type and set Accept
         headers = self._auth_headers(content_type=None)
         headers['Accept'] = 'application/octet-stream'
         
